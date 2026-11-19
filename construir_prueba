@@ -1,0 +1,37 @@
+name: Construir prueba portable
+
+# Se ejecuta a mano: pestaña Actions > "Construir prueba portable" > Run workflow
+on:
+  workflow_dispatch:
+
+jobs:
+  construir:
+    runs-on: windows-latest
+    steps:
+      - name: Descargar el codigo del repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: python -m pip install --upgrade pip pyinstaller openpyxl
+
+      - name: Construir version de un solo archivo
+        run: python -m PyInstaller --noconfirm --clean --windowed --onefile --name PruebaPortable_UnArchivo prueba_portable.py
+
+      - name: Construir version de carpeta
+        run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name PruebaPortable_Carpeta prueba_portable.py
+
+      - name: Comprimir la carpeta
+        run: Compress-Archive -Path dist/PruebaPortable_Carpeta -DestinationPath dist/PruebaPortable_Carpeta.zip
+
+      - name: Publicar los resultados
+        uses: actions/upload-artifact@v4
+        with:
+          name: PruebaPortable
+          path: |
+            dist/PruebaPortable_UnArchivo.exe
+            dist/PruebaPortable_Carpeta.zip
